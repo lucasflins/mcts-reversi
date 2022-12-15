@@ -32,7 +32,10 @@ class MonteCarloTreeSearchNode():
         return
 
     def untried_actions(self,state,tile):
-        self._untried_actions = self.get_legal_actions(state,tile)
+        if self.player:
+            self._untried_actions = self.get_legal_actions(state,tile)
+        else:
+            self._untried_actions = []
         return self._untried_actions
 
     def update_passes(self,passes):
