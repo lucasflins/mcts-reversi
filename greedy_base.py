@@ -37,13 +37,17 @@ def makeMove(board, tile, xstart, ystart):
         board[x][y] = tile
     return board
 
-def chooseGreedyMove(board, playerTile):
+def chooseGreedyMove(board, playerTile, epsilon=1.1, decrease=False):
+    epsilon = epsilon**len(get_points(board)) if decrease else epsilon
     validMoves = rev.getValidMoves(board, playerTile)
     if validMoves == []:
         return None  # passed
 
     # randomize the order of the possible moves
     random.shuffle(validMoves)
+
+    if random.random() < epsilon:
+        return choice(validMoves)
 
     # always go for a corner if available.
     for x, y in validMoves:

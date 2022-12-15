@@ -10,8 +10,9 @@ from time import perf_counter
 
 from copy import deepcopy
 
+
 class MonteCarloTreeSearchNode():
-    def __init__(self, state, player=True, parent=None, parent_action=None,tile=None):
+    def __init__(self, state, player=True, parent=None, parent_action=None, tile=None, is_simulation=False):
         self.state = state
         self.parent = parent
         self.tile = tile
@@ -24,18 +25,19 @@ class MonteCarloTreeSearchNode():
         self._results[1] = 0
         self._results[-1] = 0
         self._untried_actions = None
-        self._untried_actions = self.untried_actions(state,tile)
+        self._untried_actions = self.untried_actions(state, tile)
+        self.is_simulation = is_simulation
         # print('-----------------MOSTRAR-NOVO----------------------')
         # rev.drawBoard(state)s
         # print(self._untried_actions)
         # print('--------------FI,-NOVO-------------')
         return
 
-    def untried_actions(self,state,tile):
-        self._untried_actions = self.get_legal_actions(state,tile)
+    def untried_actions(self, state, tile):
+        self._untried_actions = self.get_legal_actions(state, tile)
         return self._untried_actions
 
-    def update_passes(self,passes):
+    def update_passes(self, passes):
         self.passes = passes
 
     def q(self):
@@ -48,14 +50,15 @@ class MonteCarloTreeSearchNode():
 
     def expand(self):
         # print(self._untried_actions)
-        x,y = self._untried_actions.pop()
+        x, y = self._untried_actions.pop()
         # print('prior expansion')
         # rev.drawBoard(self.state)
         # print('post exp')
-        next_state = self.move(deepcopy(self.state),deepcopy(self.tile),x,y)
-        child_node = MonteCarloTreeSearchNode(next_state,player=self.player,tile=self.tile, parent=self, parent_action=(x,y))
+        next_state = self.move(deepcopy(self.state), deepcopy(self.tile), x, y)
+        child_node = MonteCarloTreeSearchNode(next_state, player=self.player, tile=self.tile, parent=self,
+                                              parent_action=(x, y))
         self.children.append(child_node)
-        return child_node 
+        return child_node
 
     def is_terminal_node(self):
         return self.is_game_over()
@@ -71,20 +74,21 @@ class MonteCarloTreeSearchNode():
                 nowtile = et
             # possible_moves = self.get_legal_actions(current_rollout_state,nowtile)
             # # print(possible_moves)
-            ac = gb.chooseGreedyMove(current_rollout_state,nowtile)
+
+            ac = gb.chooseGreedyMove(current_rollout_state, nowtile, epsilon=.1, decrease=False)
             if ac is None:
                 self.player = not self.player
                 self.passes += 1
                 continue
             self.passes = 0
-            x,y = ac
-            
+            x, y = ac
+
             # if not possible_moves:
             #     self.player = not self.player
             #     continue
             # x,y = self.rollout_policy(possible_moves)
-            
-            current_rollout_state = self.move(current_rollout_state,nowtile,x,y)
+
+            current_rollout_state = self.move(current_rollout_state, nowtile, x, y)
             # self.player = not self.player
         return self.game_result(current_rollout_state)
 
@@ -119,7 +123,7 @@ class MonteCarloTreeSearchNode():
         simulation_no = 300
         # while len(self._untried_actions) > 0:
         # print(self.get_legal_actions(self.state,self.tile))
-        if not self.get_legal_actions(self.state,self.tile):
+        if not self.get_legal_actions(self.state, self.tile):
             return 'pass'
         # for _ in (range(simulation_no)):
         t = perf_counter()
@@ -139,12 +143,11 @@ class MonteCarloTreeSearchNode():
         # if len(self.children) == 0:
         #     self.passes += 1
         #     return 'pass'
-        return self.best_child(c_param=0.)  
+        return self.best_child(c_param=0.)
 
-    
-    def get_legal_actions(self,state,tile): 
+    def get_legal_actions(self, state, tile):
         # # print('getting possible moves for ',tile)
-        possibles = rev.getValidMoves(state,tile)
+        possibles = rev.getValidMoves(state, tile)
         # if possibles:
         #     self.passes = 0
         # else:
@@ -156,23 +159,23 @@ class MonteCarloTreeSearchNode():
         # # print('SHOULD BE PLAYER ',self.player)
         return True if self.passes >= 2 else False
 
-    def game_result(self,state):
+    def game_result(self, state):
         temp = gb.get_points(state)
         pt = self.tile
         et = 'X' if pt == 'O' else 'O'
         if temp[pt] > temp[et]:
-            return 1 #temp[pt] - temp[et]
+            return 1  # temp[pt] - temp[et]
         if temp[pt] == temp[et]:
             return 0
         if temp[pt] < temp[et]:
-            return -1 #temp[et] - temp[pt]
+            return -1  # temp[et] - temp[pt]
 
-    def move(self,state,tile,x,y):
+    def move(self, state, tile, x, y):
         self.player = not self.player
-        return gb.makeMove(state,tile,x,y)
+        return gb.makeMove(state, tile, x, y)
 
 
 def main():
-    root = MonteCarloTreeSearchNode(state = initial_state)
+    root = MonteCarloTreeSearchNode(state=initial_state)
     selected_node = root.best_action()
-    return 
+    return

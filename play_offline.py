@@ -154,7 +154,7 @@ def PLAY_GAME():
                     print("Computer passed.")
                 else:
                     passCount = 0
-                    x, y = chooseGreedyMove(mainBoard, computerTile)
+                    x, y = chooseGreedyMove(mainBoard, computerTile, epsilon=-1)
                     mainBoard = gb.makeMove(mainBoard, computerTile, x, y)
                     print("Computer played x =", x, "y =", y)
                 # root.state = mainBoard
@@ -204,7 +204,7 @@ def PLAY_GAME_AUTO():
 
         turn = 'player' if (playerTile == 'X') else 'computer'  # player with 'X' starts
         # print('The ' + turn + ' will go first.')
-        root = MonteCarloTreeSearchNode(mainBoard,tile=playerTile)
+        root = MonteCarloTreeSearchNode(mainBoard,tile=playerTile, is_simulation=False)
         while True:
             # O jogo acabe depois de dois "pass" consecutivos
             if root != 'pass':

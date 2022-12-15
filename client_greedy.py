@@ -1,5 +1,6 @@
 import socket
 import json
+from copy import deepcopy
 
 import reversi as rev
 from greedy_base import chooseGreedyMove
@@ -34,7 +35,7 @@ def sendGreedyMove(client_socket, board, piece):
 
 
 def sendMCTSMove(client_socket, moveMsg):
-    sendMsg(client_socket, moveMsg)
+    sendMsg(client_socket, moveMsg if moveMsg == 'pass' else f"{moveMsg[0]} {moveMsg[1]}")
     print("My move:", moveMsg)
 
     # waits for confirmation
@@ -50,7 +51,7 @@ def message_to_board(full_message):
 
 def client_program():
     host = socket.gethostname()  # assumes that server and clients are running on the same pc
-    port = 5123                  # socket server port number
+    port = 5123  # socket server port number
 
     client_socket = socket.socket()
     client_socket.connect((host, port))
@@ -68,13 +69,11 @@ def client_program():
         # a new match is starting, so parse the board
         board = message_to_board(data)
 
-        
-
         data = receiveMsg(client_socket)
         assert data.startswith('piece')
 
         if data == 'piece O':
-            myPiece  = 'O'
+            myPiece = 'O'
             advPiece = 'X'
             print('Playing with O')
         else:
@@ -102,16 +101,17 @@ def client_program():
 
             # waits for adversary move
             data = receiveMsg(client_socket)
-        
-        print("Final score:", data[data.find(' ')+1:])
+
+        print("Final score:", data[data.find(' ') + 1:])
         data = receiveMsg(client_socket)
 
     print("All matches finished by the server.")
     client_socket.close()  # close the connection
 
+
 def client_program_mcts():
     host = socket.gethostname()  # assumes that server and clients are running on the same pc
-    port = 5123                  # socket server port number
+    port = 5123  # socket server port number
 
     client_socket = socket.socket()
     client_socket.connect((host, port))
@@ -133,15 +133,15 @@ def client_program_mcts():
         assert data.startswith('piece')
 
         if data == 'piece O':
-            myPiece  = 'O'
+            myPiece = 'O'
             advPiece = 'X'
             print('Playing with O')
-            root = MonteCarloTreeSearchNode(board,False,None,None,myPiece)
+            root = MonteCarloTreeSearchNode(deepcopy(board), False, None, None, myPiece)
         else:
             myPiece = 'X'
             advPiece = 'O'
             print('Playing with X (starting piece)')
-            root = MonteCarloTreeSearchNode(board,True,None,None,myPiece)
+            root = MonteCarloTreeSearchNode(deepcopy(board), True, None, None, myPiece)
             root = root.best_action()
             move = root.parent_action
             if root != 'pass':
@@ -150,25 +150,37 @@ def client_program_mcts():
             else:
                 # passCount += 1
                 move = root
-            sendMCTSMove(client_socket,move)
-
+            sendMCTSMove(client_socket, move)
 
         # receives the adversary move
         data = receiveMsg(client_socket)
-        
+        print(data)
 
         while not data.startswith('end'):
             # parses adversary move
             advMove = data.strip().split()
+            print(advMove)
             assert advMove[0] == advPiece, "Unexpected: " + str(advMove)
 
             if advMove[1] == 'pass':
                 print("Adversary passed")
-                root = MonteCarloTreeSearchNode(root.state,True,root,root.parent_action,root.tile)
+                root = MonteCarloTreeSearchNode(root.state, True, root, root.parent_action, root.tile)
             else:
                 print("Adversary move:", advMove[1], advMove[2])
+                print('before')
+                rev.drawBoard(board)
+                print('after')
                 rev.makeMove(board, advPiece, int(advMove[1]), int(advMove[2]))
-                root = MonteCarloTreeSearchNode(board,True,root,root.parent_action,root.tile)
+                rev.drawBoard(board)
+
+                print('root before')
+                rev.drawBoard(root.state)
+
+                root = MonteCarloTreeSearchNode(deepcopy(board), True, root, root.parent_action, root.tile)
+                print('root after')
+                rev.drawBoard(root.state)
+            # print('BOARD INTERNO')
+            # rev.drawBoard(board)
 
             # computes and sends a greedy move
             # sendGreedyMove(client_socket, board, myPiece)
@@ -180,17 +192,16 @@ def client_program_mcts():
             else:
                 # passCount += 1
                 move = root
-            sendMCTSMove(client_socket,move)
+            sendMCTSMove(client_socket, move)
             # waits for adversary move
             data = receiveMsg(client_socket)
-        
-        print("Final score:", data[data.find(' ')+1:])
+
+        print("Final score:", data[data.find(' ') + 1:])
         data = receiveMsg(client_socket)
 
     print("All matches finished by the server.")
     client_socket.close()  # close the connection
 
 
-
 if __name__ == '__main__':
-    client_program()
+    client_program_mcts()
