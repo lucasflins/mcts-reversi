@@ -143,9 +143,9 @@ def client_program_mcts():
             print('Playing with X (starting piece)')
             root = MonteCarloTreeSearchNode(deepcopy(board), True, None, None, myPiece)
             root = root.best_action()
-            move = root.parent_action
             if root != 'pass':
                 move = root.parent_action
+                rev.makeMove(board, myPiece, move[0], move[1])
                 # root.update_passes(0)
             else:
                 # passCount += 1
@@ -161,37 +161,31 @@ def client_program_mcts():
             advMove = data.strip().split()
             print(advMove)
             assert advMove[0] == advPiece, "Unexpected: " + str(advMove)
-
+            print('BEFORE ADV MOVE')
+            rev.drawBoard(board)
             if advMove[1] == 'pass':
                 print("Adversary passed")
                 root = MonteCarloTreeSearchNode(root.state, True, root, root.parent_action, root.tile)
             else:
                 print("Adversary move:", advMove[1], advMove[2])
-                print('before')
-                rev.drawBoard(board)
-                print('after')
                 rev.makeMove(board, advPiece, int(advMove[1]), int(advMove[2]))
-                rev.drawBoard(board)
-
-                print('root before')
-                rev.drawBoard(root.state)
-
                 root = MonteCarloTreeSearchNode(deepcopy(board), True, root, root.parent_action, root.tile)
-                print('root after')
-                rev.drawBoard(root.state)
-            # print('BOARD INTERNO')
-            # rev.drawBoard(board)
 
+            # draw board
+            print('AFTER ADV MOVE')
+            rev.drawBoard(board)
             # computes and sends a greedy move
             # sendGreedyMove(client_socket, board, myPiece)
-            root = root.best_action()
-            move = root.parent_action
-            if root != 'pass':
+            action = root.best_action()
+            root = action if action != 'pass' else root
+            if action != 'pass':
                 move = root.parent_action
-                # root.update_passes(0)
+                rev.makeMove(board, myPiece, move[0], move[1])
             else:
                 # passCount += 1
-                move = root
+                move = action
+            print('AFTER MY MOVE')
+            rev.drawBoard(board)
             sendMCTSMove(client_socket, move)
             # waits for adversary move
             data = receiveMsg(client_socket)
