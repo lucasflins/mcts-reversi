@@ -68,7 +68,6 @@ def client_program():
         print("NEW MATCH")
 
         # a new match is starting, so parse the board
-        print('aiaiaia A '+data)
         if 'piece ' in data:
             board = message_to_board(data[:data.find('piece ')])
             data = data[data.find('piece '):]
@@ -92,7 +91,6 @@ def client_program():
 
         while not data.startswith('end'):
             # parses adversary move
-            print('Received', data)
             advMove = data.strip().split()
             assert advMove[0] == advPiece, "Unexpected: " + str(advMove)
 
@@ -131,7 +129,6 @@ def client_program_mcts():
 
     while data != 'disconnect':
         print("NEW MATCH")
-        print('aiaiaia A ' + data)
         # a new match is starting, so parse the board
         if 'piece ' in data:
             board = message_to_board(data[:data.find('piece ')])
@@ -163,14 +160,11 @@ def client_program_mcts():
 
         # receives the adversary move
         data = receiveMsg(client_socket)
-        print(data)
 
         while not data.startswith('end'):
             # parses adversary move
             advMove = data.strip().split()
-            print(advMove)
             assert advMove[0] == advPiece, "Unexpected: " + str(advMove)
-            print('BEFORE ADV MOVE')
             rev.drawBoard(board)
             if advMove[1] == 'pass':
                 print("Adversary passed")
@@ -181,7 +175,7 @@ def client_program_mcts():
                 root = MonteCarloTreeSearchNode(deepcopy(board), True, root, root.parent_action, root.tile)
 
             # draw board
-            print('AFTER ADV MOVE')
+
             rev.drawBoard(board)
             # computes and sends a greedy move
             # sendGreedyMove(client_socket, board, myPiece)
@@ -193,7 +187,6 @@ def client_program_mcts():
             else:
                 # passCount += 1
                 move = action
-            print('AFTER MY MOVE')
             rev.drawBoard(board)
             sendMCTSMove(client_socket, move)
             # waits for adversary move
@@ -207,4 +200,4 @@ def client_program_mcts():
 
 
 if __name__ == '__main__':
-    client_program()
+    client_program_mcts()

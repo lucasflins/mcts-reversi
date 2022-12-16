@@ -1,3 +1,5 @@
+from random import shuffle, sample
+
 import numpy as np
 from collections import defaultdict
 
@@ -35,9 +37,11 @@ class MonteCarloTreeSearchNode():
 
     def untried_actions(self,state,tile):
         if self.player:
-            self._untried_actions = self.get_legal_actions(state,tile)
+            legal_actions = self.get_legal_actions(state,tile)
+            self._untried_actions = sample(legal_actions, len(legal_actions))
         else:
             self._untried_actions = []
+        # return shuffled list of actions
         return self._untried_actions
 
     def update_passes(self, passes):
@@ -130,7 +134,7 @@ class MonteCarloTreeSearchNode():
             return 'pass'
         # for _ in (range(simulation_no)):
         t = perf_counter()
-        while (perf_counter() - t) <= 0.1:
+        while (perf_counter() - t) <= .1:
             # print('---------START TREE---------')
             v = self._tree_policy()
             # print('---------PASSOU DA TREE---------')

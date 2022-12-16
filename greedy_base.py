@@ -40,7 +40,7 @@ def makeMove(board, tile, xstart, ystart):
 def chooseGreedyMove(board, playerTile, epsilon=1.1, decrease=False):
     epsilon = epsilon**len(get_points(board)) if decrease else epsilon
     validMoves = rev.getValidMoves(board, playerTile)
-    if validMoves == []:
+    if not validMoves:
         return None  # passed
 
     # randomize the order of the possible moves
